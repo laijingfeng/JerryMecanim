@@ -11,6 +11,7 @@ public class Follow : MonoBehaviour
     protected CharacterController controller;
     private float SpeedDampTime = .25f;
     private float DirectionDampTime = .25f;
+    private Vector3 MoveDis;
 
     void Start()
     {
@@ -30,6 +31,8 @@ public class Follow : MonoBehaviour
                 Vector3 curentDir = avatar.rootRotation * Vector3.forward;
                 Vector3 wantedDir = (TargetObj.position - avatar.rootPosition).normalized;
 
+                //Debug.LogError(Vector3.Dot(curentDir, wantedDir) + " " + Vector3.Cross(curentDir, wantedDir).y);
+
                 if (Vector3.Dot(curentDir, wantedDir) > 0)
                 {
                     avatar.SetFloat("Direction", Vector3.Cross(curentDir, wantedDir).y, DirectionDampTime, Time.deltaTime);
@@ -46,18 +49,37 @@ public class Follow : MonoBehaviour
         }
     }
 
+    [ContextMenu("PrintDis")]
+    private void PrintDis()
+    {
+        Vector3 v1 = TargetObj.position;
+        v1.y = 0;
+        Vector3 v2 = avatar.rootPosition;
+        v2.y = 0;
+        Debug.LogWarning("dis=" + (v2 - v1).magnitude + " " + Vector3.Dot(new Vector3(1, 0, 0), new Vector3(1, 0, 0)) + " " + Vector3.Dot(new Vector3(-1, 0, 0), new Vector3(1, 0, 0)));
+    }
+
     private bool NeedFollow()
     {
         Vector3 v1 = TargetObj.position;
         v1.y = 0;
         Vector3 v2 = avatar.rootPosition;
         v2.y = 0;
+        MoveDis = v2 - v1;
         return Vector3.Distance(v1, v2) > FollowDis;
     }
 
     void OnAnimatorMove()
     {
-        controller.Move(avatar.deltaPosition);
+        if (avatar.deltaPosition.sqrMagnitude > MoveDis.sqrMagnitude)
+        {
+            Debug.Log("xxx");
+            controller.Move(MoveDis);
+        }
+        else
+        {
+            controller.Move(avatar.deltaPosition);
+        }
         transform.rotation = avatar.rootRotation;
     }
 }
